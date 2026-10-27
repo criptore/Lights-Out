@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this dataset, please cite it as below."
+type: dataset
+title: "Storm Blackout and Restoration"
+authors:
+  - name: "Heimdall Research"
+    website: "https://heimdallresearch.com"
+version: "1.2"
+date-released: "2026-10-10"
+license: CC-BY-4.0
+url: "https://heimdallresearch.com/data/storm-blackout/"
+doi: "10.5281/zenodo.23010005"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.23010005"
+    description: "Version DOI"
+  - type: doi
+    value: "10.5281/zenodo.23010004"
+    description: "Concept DOI (all versions)"
+keywords:
+  - "power outage"
+  - "hurricane"
+  - "winter storm"
+  - "night lights"
+  - "VIIRS"
+  - "Black Marble"
+  - "resilience"
+  - "FEMA"
+  - "EAGLE-I"
+abstract: "County records for 672 FEMA-declared U.S. storms with landfall or incident dates from 2012-01-14 to 2026-08-11: NASA Black Marble night light by county and night, and reported power outages and restoration times from DOE EAGLE-I utility records where they exist."
