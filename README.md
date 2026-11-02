@@ -6,10 +6,10 @@
 
 | Name | Organization | Email |
 |---|---|---|
-| Joshua HOORPAH | _Organization_ | _email_ |
-| Thierry ROSANO | _Organization_ | _email_ |
-| Erik Walter NIHLEN | _Organization_ | _email_ |
-| Thomas LHUILLIER BETTIN | _Organization_ | _email_ |
+| Joshua HOORPAH | Ecole central d'electronique | joshua.hoorpah@edu.ece.fr |
+| Thierry ROSANO | Ecole central d'electronique | Thierryrosano26@gmail.com |
+| Erik Walter NIHLEN | Tekniska högskolan vid Linköpings universitet | walni258@student.liu.se |
+| Thomas LHUILLIER BETTIN | Ecole central d'electronique | thomaslhuillier78@gmail.com |
 
 ## Task 3: Research idea
 
