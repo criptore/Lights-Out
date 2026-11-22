@@ -338,7 +338,50 @@ same protocol, and measure how much these features improve both models.
 
 ## IV. Evaluation & Analysis
 
-*In progress.*
+### Major-outage classifier
+
+The full analysis is in [`notebooks/02_classifier.ipynb`](notebooks/02_classifier.ipynb). The question is
+whether more than 10% of a county's customers lose power at the peak, using only features known when
+the storm hits.
+
+**Cross-validation (training storms, split by storm).** Every model beats the simple baselines except
+Naive Bayes. The random forest is the best (ROC AUC 0.720), just ahead of logistic regression (0.706)
+and gradient boosting (0.698). Using night light alone, with no model, gives an AUC of only 0.563,
+barely above chance (0.5) and close to what the dataset authors report (0.52 to 0.57).
+
+![Major outage: baselines and models](figures/classifier_models.png)
+
+**Final test (93 storms never seen during training, 1,991 counties).** After a small tuning step, the
+random forest reaches:
+
+| Metric | Random forest | Reference |
+|---|---|---|
+| ROC AUC | **0.707** | night light only: 0.563 (no model) |
+| Accuracy | 0.668 | always predicting the majority class: 0.522 |
+| Precision | 0.637 | |
+| Recall | 0.708 | |
+| F1 | 0.671 | |
+
+![ROC curve and confusion matrix on the test storms](figures/classifier_test.png)
+
+The test AUC (0.707) is close to the cross-validated one (0.720), so the model was not over-tuned to the
+training storms. At a 0.5 threshold, it finds 71% of the major outages (673 of 951) but also raises 383
+false alarms among the 1,040 counties without a major outage.
+
+What we take from it:
+
+- **Satellite night light alone is not enough to detect outages.** With an AUC of 0.56, it barely beats
+  a coin flip. Clouds, generators that switch lights back on before the grid, and damaged buildings
+  that stay dark all blur the signal (`data/LIMITS.md`).
+- **A few features known at storm time do much better** (AUC 0.71 on unseen storms), but the model is far
+  from perfect: storm and county descriptions only explain part of who loses power.
+- The most useful features are the year, the NHC wind radius and the storm type (permutation
+  importance in the notebook). The wind radius only exists for Atlantic storms, which is why adding
+  HURDAT2 wind speed and pressure is our next step.
+- Splitting by storm matters: the same gradient boosting model scores 0.698 when split by storm but
+  0.793 with a random split, which would overstate how well it works on a new storm.
+
+*Restoration-time regression: in progress.*
 
 ## V. Related Work
 
