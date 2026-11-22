@@ -11,8 +11,22 @@
 | Erik Walter NIHLEN | Tekniska högskolan vid Linköpings universitet | Computer Science / Engineering | walni258@student.liu.se |
 | Thomas LHUILLIER BETTIN | Ecole central d'electronique | Computer Science / Engineering | thomaslhuillier78@gmail.com |
 
+## Abstract
+
+When a storm hits the United States, some counties lose power for a few hours and others for weeks. Using a public
+dataset of 672 storms from 2012 to 2026, which joins the outages reported by power utilities county by county with
+satellite pictures of the lights at night, we train machine learning models for two questions: will a county have a
+**major outage** (more than 10% of its customers without power), and **how long** will it take to bring 90% of them
+back? We use only information available when the storm hits, and we always test the models on storms they have never
+seen. Night light alone barely detects outages (AUC 0.56 to 0.60, where 0.5 is a coin flip). A random forest that
+knows the storm type, the state, the date, the size of the county and whether it lies in the hurricane's wind radius
+reaches an AUC of 0.71 on new storms, but it misses most major outages caused by floods. Predicting the restoration
+time is much harder: storm-level information explains almost none of it, and knowing how many customers are out at the
+peak explains about 20%. We describe each step, from the raw data to the errors of the final models.
+
 ## Table of contents
 
+- [Abstract](#abstract)
 - [I. Introduction](#i-introduction)
 - [II. Datasets](#ii-datasets)
   - [Files](#files)
@@ -29,22 +43,91 @@
 
 ### Motivation
 
-When a storm hits the United States, some counties lose power for a few hours and others for
-weeks. We want to know which county and storm features explain that difference.
+Power outages are one of the most visible effects of a storm. When a hurricane, an ice storm or a line of
+thunderstorms crosses the United States, falling trees and strong winds break power lines, and millions of homes can
+lose electricity. Without power, people lose heating or air conditioning, food spoils, water pumps and medical devices
+stop, and businesses close. The damage is very uneven: in some counties the lights are back within a few hours, in
+others it takes weeks.
 
-### What we want to see at the end
+Power companies (*utilities*) and emergency services have to decide quickly where to send repair crews, generators
+and help, often before they know the full extent of the damage. If we could tell in advance **which counties are
+likely to lose power on a large scale**, and **how long it will take to restore it**, these decisions could be made
+earlier and better. This is the question of our project.
 
-Using 672 FEMA-declared storms from 2012 to 2026, we will train two supervised models at the
-county level. The first is a classifier that flags major outages, defined as more than 10% of
-customers out at the peak (`peak_share_out > 0.10`). The second is a regression model that
-predicts `hours_to_90pct_restored`, the time needed to bring 90% of customers back. We will also
-test whether satellite night light alone can detect an outage: the dataset authors report an AUC
-of only about 0.55, barely above chance, and we will discuss why (generators, clouds, damaged
-buildings). As a follow-up to this project, the models could be enriched with wind speed and
-pressure from NOAA HURDAT2, joined on the NOAA storm identifiers (for example AL022019), to measure
-how much storm intensity improves them.
+### Two questions
+
+We work at the level of a **county** (the United States has about 3,000 of them) during one storm. For each pair
+"storm, county" we ask two questions:
+
+1. **Will the county have a major outage?** We call an outage *major* when more than 10% of the county's customers
+   (households and businesses connected to the grid) are without power at the worst moment of the storm, the
+   *peak*. This is a yes/no question.
+2. **How long will it take to bring the power back?** We measure the number of hours from the peak until 90% of
+   the customers have power again. This is a question whose answer is a number.
+
+### The data in a few words
+
+We use a public dataset (Part II) that describes 672 storms declared as disasters by the U.S. federal emergency
+agency (FEMA) between 2012 and 2026. For each storm and each county hit, it gives two views of the same blackouts:
+
+- **what the utilities reported**: how many customers were out at the peak, and how fast they were reconnected;
+- **what satellites saw**: how bright the county was at night before and after the storm. A county that suddenly
+  goes dark from space may have lost power.
+
+It also tells us the type of storm (hurricane, flood, winter storm...), its date, the state, and the number of
+customers in each county.
+
+### How we answer them
+
+We use **supervised machine learning**: we show a model thousands of past examples (storm, county, what happened)
+and it learns patterns that link the description of a storm and a county to the outcome. Then we ask it to predict
+the outcome for examples it has not seen. In machine learning terms:
+
+- question 1 is a **classification** task (predict a category: major outage or not);
+- question 2 is a **regression** task (predict a number: hours of restoration).
+
+We try several standard models from the scikit-learn library, from the simplest (logistic and linear regression,
+which add up the effect of each feature) to more powerful ones that combine hundreds of small decision trees
+(*random forests* and *gradient boosting*).
+
+A few ideas guide the whole project, and they come back in every section:
+
+- **Only use what is known in time.** A prediction is useless if it relies on information that only exists after
+  the fact. To predict a major outage, the model may only use what is known when the storm hits (storm type, state,
+  date, county size...), never the outage figures themselves.
+- **Test on new storms.** All the counties hit by the same storm look alike (same weather, same date, same
+  utility). If the model is trained on some counties of a storm and tested on others, it can simply recognise the
+  storm and look better than it is. So we always keep whole storms aside for testing (*split by storm*), and our
+  final scores come from storms the model has never seen.
+- **Compare with simple baselines.** A score only means something next to a very simple rule, such as "always
+  predict the most common answer" or "use the average of the storm type". A model is only useful if it clearly
+  beats these rules.
+- **Measure the quality in an understandable way.** For the yes/no question we mainly use the **AUC**: the
+  probability that the model gives a higher risk score to a county that did have a major outage than to one that did
+  not. An AUC of 0.5 is a coin flip, 1 is perfect. We also count the major outages found and the false alarms. For
+  the restoration time we use the **R²**, the share of the differences between counties that the model explains
+  (0 = no better than always predicting the average, 1 = perfect), and the typical error in hours.
+
+We also test a question raised by the dataset itself: **can satellite night light alone detect an outage?** The
+dataset authors found an AUC of only about 0.55, barely above chance, and we discuss why (clouds, generators that
+switch lights back on before the grid, damaged buildings that stay dark).
+
+### What the rest of this blog contains
+
+- **Part II (Datasets)** describes the files, the missing values and the two targets, with the first charts.
+- **Part III (Methodology)** explains step by step how we build the table, choose the features, train and test
+  the models.
+- **Part IV (Evaluation & Analysis)** gives the results on unseen storms and looks at where the models fail.
+- **Part V (Related Work)** and **Part VI (Conclusion)** place the work in context and sum it up.
+
+As a follow-up to this project, the models could be enriched with wind speed and pressure from NOAA HURDAT2, the
+official record of Atlantic hurricanes, joined on the NOAA storm identifiers (for example AL022019), to measure how
+much storm intensity improves them.
 
 ## II. Datasets
+
+*In short: where the data comes from, what one row means, which values are missing and why, and what the two
+things we want to predict look like.*
 
 [Storm Blackout and Restoration](https://www.kaggle.com/datasets/heimdallresearch/storm-blackout)
 v1.2 by Heimdall Research (DOI [10.5281/zenodo.23010005](https://doi.org/10.5281/zenodo.23010005)).
@@ -194,6 +277,10 @@ than a trend.
 
 ## III. Methodology
 
+*In short: we turn the data into one table (one row = one county during one storm), keep only the information
+available at prediction time, compare simple rules with five machine learning models, and always score them on storms
+kept aside. The same recipe is used for both questions.*
+
 We follow the same procedure for both tasks, so the two models can be compared. The code is in
 [`notebooks/02_classifier.ipynb`](notebooks/02_classifier.ipynb) (major outage) and
 [`notebooks/03_regression.ipynb`](notebooks/03_regression.ipynb) (restoration time). Everything uses
@@ -339,6 +426,9 @@ storm id, rerun the same protocol, and measure how much these features improve b
 left for future work and is not part of the results below.
 
 ## IV. Evaluation & Analysis
+
+*In short: how good the models are on storms they have never seen, compared with simple rules, and which storms
+and counties they get wrong.*
 
 ### Major-outage classifier
 
