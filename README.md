@@ -108,9 +108,10 @@ column that says why.
   - `reporting_drop` (1,752 rows): the utility stopped reporting during the storm, so the restore
     time is unknown;
   - `not_restored_in_window` (1,165 rows): 90% was not reached before the end of the observation
-    window. These are the **longest** outages, so dropping them biases the regression target
-    downwards. This is right-censoring, which we will need to handle (or at least discuss) in the
-    regression step;
+    window. These are the **longest** restorations, so dropping them biases the regression target
+    downwards. This is right-censoring, handled and discussed in the regression step. They are
+    long in time but mostly **small** outages: about 150 customers out at the peak (median),
+    against about 2,700 for the rows with a known value (see `03_regression.ipynb`);
   - `no_customers_out` (45 rows): nobody lost power, so there is nothing to restore.
 
 The night-light columns of `county_summary.csv` follow the same logic. Their `status` column is
@@ -192,20 +193,148 @@ than a trend.
 
 ## III. Methodology
 
-We will compare simple baselines (logistic and linear regression) with tree ensembles such as
-random forests and gradient boosting.
+We follow the same procedure for both tasks, so the two models can be compared. The code is in
+[`notebooks/02_classifier.ipynb`](notebooks/02_classifier.ipynb) (major outage) and
+[`notebooks/03_regression.ipynb`](notebooks/03_regression.ipynb) (restoration time). Everything uses
+scikit-learn.
 
-What the exploration tells us for the modelling step:
+### 1. Modelling table
 
-- The modelling table is `utility_by_county.csv` joined to `storms.csv` on `event_id`.
-- Rows with `reason != 'ok'` have no outage data and are dropped for modelling.
-- **Classification** (`peak_share_out > 0.10`): about 10,000 usable rows, two classes of similar size.
-- **Regression** (`hours_to_90pct_restored`): about 7,300 usable rows, long right tail (use a log
-  target), and right-censored rows (`not_restored_in_window`) to handle.
-- Storm type, state and year all show large differences and are natural first features.
-- Only the storms with a NOAA id (`AL…`, `EP…`) can be enriched with HURDAT2 wind speed and pressure.
+One row = one storm in one county. We start from `utility_by_county.csv` and add:
 
-*In progress.*
+- from `storms.csv` (joined on `event_id`): the storm type (`kind`), and the year and month of the
+  landfall (or of the first impact when there is no landfall);
+- from `county_summary.csv` (joined on `event_id` and `geoid`): whether the county is inside the NHC
+  34-knot wind radius, and the median night-light radiance before the storm.
+
+Every row of `utility_by_county.csv` finds its storm and its county, so the joins add no row and lose
+none. We then keep the rows with `reason == 'ok'` (the utility reported something) and a known target:
+
+| Task | Target | Usable rows | Storms |
+|---|---|---|---|
+| Classification | `major_outage` = `peak_share_out > 0.10` | 9,989 | 462 |
+| Regression | `log(1 + hours_to_90pct_restored)` | 7,297 | 449 |
+
+The regression target is modelled on the log scale because it spans 0.5 to 1,000 hours: on raw hours,
+the model would be driven by a few extreme counties, and an error of 10 hours means more for a
+3-hour outage than for a 300-hour one. On the log scale, an error is a relative error.
+
+### 2. Features: only what is known when the prediction is needed
+
+A prediction is only useful if it can be made before the answer is known. So each feature must be
+available at the time of the prediction:
+
+| Feature | Type | Known | Used in |
+|---|---|---|---|
+| `kind` (storm type) | categorical | before the storm | both tasks |
+| `state` | categorical | before the storm | both tasks |
+| `wind_radius`: inside / outside / unknown | categorical | when the storm hits | both tasks |
+| `year`, `month` | numeric | before the storm | both tasks |
+| `log_customers` = log(1 + `customers_total`), county size | numeric | before the storm | both tasks |
+| `log_baseline` = log(1 + `baseline_radiance`), pre-storm night light (how urban the county is) | numeric | before the storm | both tasks |
+| `log_peak` = log(1 + `peak_customers_out`) and `peak_share_out`, size of the outage | numeric | at the outage peak | regression, setup B only |
+
+- The **classifier** uses the first seven features (the first six rows of the table, storm time): it must say whether a major outage
+  will happen, so nothing about the outage itself can be used.
+- The **regression** is run with two setups. **Setup A** uses the same storm-time features.
+  **Setup B** adds the size of the outage at its peak. This is allowed because the restoration time
+  is counted from the peak, so the peak is known when the prediction is made. It matches a real use:
+  the utility knows how many customers are out and wants to know how long it will take.
+- Left out on purpose because they contain part of the answer: `customer_hours_out`,
+  `hours_to_50pct_restored`, `hours_under_1pct_customers`, and the night-light drop after the storm
+  (`outage_min_ratio`, used only as a separate baseline for the classifier).
+- The wind radius exists only for the 34 Atlantic storms covered by HURDAT2. An empty value does not
+  mean "outside" (`data/DATA_DICTIONARY.md`), so it is kept as a third category, `unknown`.
+
+### 3. Evaluation protocol: split by storm
+
+All the counties hit by the same storm share the weather, the date and often the utility. If some of
+them are used for training and others for testing, the model can recognise the storm instead of
+learning something general, and the score is too optimistic. So:
+
+1. **Final test set:** 20% of the storms are set aside at the start (`GroupShuffleSplit`, group =
+   `event_id`) and used **only once**, at the very end.
+2. **Model selection:** on the other 80%, 5-fold cross-validation where a storm is always entirely
+   in one fold (`GroupKFold`). All comparisons and all tuning use these folds only.
+3. **Check:** we also run one model with an ordinary random split, to measure how much a random
+   split would overstate the score.
+
+Metrics:
+
+| Task | Main metric | Also reported |
+|---|---|---|
+| Classification | ROC AUC (0.5 = chance, 1 = perfect, does not depend on a threshold) | accuracy, precision, recall, F1 at threshold 0.5, confusion matrix |
+| Regression | R² on log(hours) (0 = no better than the mean) | MAE on the log scale, shown as a typical error factor exp(MAE); median and mean absolute error in hours on the test set |
+
+The two classes of the classifier have similar sizes (about 50/50), so accuracy is also meaningful
+and no rebalancing is needed.
+
+### 4. Baselines first
+
+Before any model, very simple predictors show what "good" means:
+
+- **Constant**: always the same prediction (the majority class, or the mean log time).
+- **Storm-type lookup table**: the mean of the target for that storm type in the training folds.
+- **Night light only** (classifier): how dark the county got after the storm, with no training. This
+  tests our question of whether satellites alone can detect an outage.
+- **Peak-size lookup table** (regression): the mean log time in 10 groups of outage size.
+
+### 5. Models
+
+Five classic models per task, from the simplest to the strongest on tabular data:
+
+| Classification | Regression | Why |
+|---|---|---|
+| Logistic regression | Linear regression (ridge, small L2 penalty) | Linear baseline, readable coefficients |
+| Gaussian Naive Bayes | k-nearest neighbours (k = 25) | Very simple, no real training |
+| Decision tree (depth 5) | Decision tree (depth 6) | Can be drawn and explained |
+| Random forest | Random forest | Robust with little tuning |
+| Gradient boosting (`HistGradientBoostingClassifier`) | Gradient boosting (`HistGradientBoostingRegressor`) | Usually the best choice for tables |
+
+Preprocessing is inside a scikit-learn `Pipeline`, so it is learned on the training folds only and
+never sees the test data:
+
+- linear models, Naive Bayes, k-NN and the trees: **one-hot encoding** of the categories (rare
+  categories with fewer than 20 rows grouped together), **median imputation** of the few missing
+  numbers, and **standard scaling** for the models that need it;
+- gradient boosting: **ordinal encoding** with native categorical support, and native handling of
+  missing values.
+
+### 6. Tuning and final test
+
+The two tree ensembles are tuned with a small `GridSearchCV` on the grouped folds (random forest:
+leaf size and features per split; gradient boosting: learning rate, tree size and L2 penalty). The
+grids are small on purpose: the goal is to show the procedure. The model with the best
+cross-validated score is refitted on all training storms and evaluated once on the test storms.
+
+### 7. Interpretation
+
+- **Permutation importance** on the test storms: shuffle one feature and measure how much the score
+  drops. It works on the original features (before one-hot encoding), so it is easy to read.
+- A **shallow decision tree** (depth 3) to show the main rules of the classifier.
+- For the regression, **predicted vs true** plots and **errors per storm type and per storm**.
+
+### 8. Censored restoration times
+
+1,165 counties were still above 10% of the peak when the 45-day window ended
+(`not_restored_in_window`). Their true restoration time is unknown but longer than what was observed:
+this is right-censoring. Dropping them makes the model under-estimate long restorations. We:
+
+1. describe who is censored (outage size, storm type);
+2. check how the model trained without them predicts them;
+3. run a sensitivity check where they are kept with a stand-in value (the longest observed time,
+   about 1,000 hours), and compare the results.
+
+The proper method is survival analysis (Cox or accelerated failure time models, random survival
+forests), which treats a censored row as "at least this long". We discuss it as an extension.
+Counties with `reporting_drop` (the feed stopped) have an unknown time with no reason to be longer or
+shorter, so they are simply dropped.
+
+### 9. Next step: storm intensity from HURDAT2
+
+Storm type is a weak description of how violent a storm was. For the storms with a NOAA id (`AL…`,
+`EP…`), we will join NOAA HURDAT2 maximum wind speed and minimum pressure on the storm id, rerun the
+same protocol, and measure how much these features improve both models.
 
 ## IV. Evaluation & Analysis
 
