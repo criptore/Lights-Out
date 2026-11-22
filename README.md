@@ -4,12 +4,12 @@
 
 **Members:**
 
-| Name | University | Email |
-|---|---|---|
-| Joshua HOORPAH | Ecole central d'electronique | joshua.hoorpah@edu.ece.fr |
-| Thierry ROSANO | Ecole central d'electronique | Thierryrosano26@gmail.com |
-| Erik Walter NIHLEN | Tekniska högskolan vid Linköpings universitet | walni258@student.liu.se |
-| Thomas LHUILLIER BETTIN | Ecole central d'electronique | thomaslhuillier78@gmail.com |
+| Name | University | Department | Email |
+|---|---|---|---|
+| Joshua HOORPAH | Ecole central d'electronique | Computer Science / Engineering | joshua.hoorpah@edu.ece.fr |
+| Thierry ROSANO | Ecole central d'electronique | Computer Science / Engineering | Thierryrosano26@gmail.com |
+| Erik Walter NIHLEN | Tekniska högskolan vid Linköpings universitet | Computer Science / Engineering | walni258@student.liu.se |
+| Thomas LHUILLIER BETTIN | Ecole central d'electronique | Computer Science / Engineering | thomaslhuillier78@gmail.com |
 
 ## Table of contents
 
