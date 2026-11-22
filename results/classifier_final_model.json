@@ -1,0 +1,8 @@
+{
+ "model":"Random forest",
+ "max_features":"sqrt",
+ "min_samples_leaf":20,
+ "cv_auc_mean":0.7212544502,
+ "cv_auc_std":0.0316339414,
+ "test_auc":0.7066109561
+}

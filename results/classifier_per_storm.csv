@@ -1,0 +1,94 @@
+event_id,name,kind,counties,major,found,wind_radius,median_share_out,mean_proba,recall
+AL022024,Beryl,tropical,63,43,26,outside,0.2484,0.5270901548642076,0.6046511627906976
+AL062024,Francine,tropical,64,28,20,outside,0.0785,0.48228119983805656,0.7142857142857143
+AL092017,Harvey,tropical,62,25,17,inside,0.04925,0.5697089112825772,0.68
+AL092021,Ida,tropical,193,78,33,outside,0.067,0.39583681732012965,0.4230769230769231
+AL102023,Idalia,tropical,118,57,50,inside,0.08604999999999999,0.5315143016171492,0.8771929824561403
+AL142018,Michael,tropical,196,128,86,inside,0.2283,0.5567801156884783,0.671875
+DR-4213,Severe Winter Storm And Snowstorm,severe_storm,4,0,0,unknown,0.01265,0.2959039309538603,
+DR-4232,Severe Storm And Flooding,severe_storm,2,0,0,unknown,0.042550000000000004,0.4367849945992668,
+DR-4233,"Severe Storms, Tornadoes, Straight-Line Winds, And Flooding",severe_storm,1,0,0,unknown,0.0076,0.4766217685197017,
+DR-4234,"Severe Storms, Tornadoes, Straight-Line Winds, And Flooding",severe_storm,19,8,2,unknown,0.0582,0.4598513592595969,0.25
+DR-4239,"Severe Storms, Tornadoes, Straight-Line Winds, Flooding, Landslides, And Mudslid",severe_storm,32,17,2,unknown,0.1069,0.4631254621658138,0.11764705882352941
+DR-4241,Severe Storms And Flooding,flood,36,4,0,unknown,0.04095,0.3107785369243605,0.0
+DR-4248,"Severe Storms, Tornadoes, Straight-Line Winds, And Flooding",severe_storm,8,1,1,unknown,0.03265,0.4147361969590402,1.0
+DR-4254,"Severe Storms, Tornadoes, Straight-Line Winds, And Flooding",severe_storm,35,13,9,unknown,0.0637,0.4865846726553747,0.6923076923076923
+DR-4259,Severe Storms And Flooding,severe_storm,32,6,4,unknown,0.0207,0.5248705634861984,0.6666666666666666
+DR-4260,Snowstorm,snowstorm,1,0,0,unknown,0.0058,0.18528593494142698,
+DR-4262,Severe Winter Storm And Snowstorm,snowstorm,28,8,1,unknown,0.0702,0.3713378292785143,0.125
+DR-4276,Severe Storms And Flooding,severe_storm,7,3,1,unknown,0.0924,0.4735233300754308,0.3333333333333333
+DR-4288,"Severe Storms, Flooding, And Mudslides",flood,3,0,0,unknown,0.0241,0.40202057883473646,
+DR-4294,"Severe Storms, Tornadoes, And Straight-Line Winds",severe_storm,7,2,2,unknown,0.058,0.5397271751480156,1.0
+DR-4297,"Severe Storms, Tornadoes, Straight-Line Winds, And Flooding",tornado,23,8,8,unknown,0.0643,0.5482336675905387,1.0
+DR-4303,"Severe Winter Storms, Flooding, And Mudslides",severe_storm,5,2,0,unknown,0.063,0.39803998527683576,0.0
+DR-4310,Severe Winter Storms And Flooding,flood,10,4,0,unknown,0.04525,0.3385327164124949,0.0
+DR-4317,"Severe Storms, Tornadoes, Straight-Line Winds And Flooding",flood,44,11,0,unknown,0.03965,0.31547474383913837,0.0
+DR-4321,Severe Winter Storm And Straight-Line Winds,severe_storm,4,2,0,unknown,0.0587,0.4866624677966914,0.0
+DR-4323,Flooding,flood,1,0,0,unknown,0.0062,0.35562199512984916,
+DR-4333,"Flooding, Landslides, And Mudslides",flood,3,2,0,unknown,0.4639,0.367660992277641,0.0
+DR-4342,Flooding,flood,2,0,0,unknown,0.02055,0.25335912116933895,
+DR-4360,"Severe Storms, Landslides, And Mudslides",flood,22,2,0,unknown,0.04825,0.3008519171072417,0.0
+DR-4374,Severe Storms And Flooding,severe_storm,2,0,0,unknown,0.02735,0.3933482348277567,
+DR-4375,Severe Winter Storm And Straight-Line Winds,snowstorm,9,6,0,unknown,0.1459,0.4298132557212162,0.0
+DR-4376,Severe Storm And Flooding,flood,2,0,0,unknown,0.03485,0.2563036432714435,
+DR-4378,"Severe Storms, Flooding, Landslides, And Mudslides",severe_storm,7,3,3,unknown,0.0941,0.5395253542148267,1.0
+DR-4380,Severe Storm And Flooding,severe_storm,5,2,0,unknown,0.0908,0.4599058427989317,0.0
+DR-4387,"Severe Storms, Tornadoes, Straight-Line Winds, And Flooding",severe_storm,5,0,0,unknown,0.0022,0.43394254097993634,
+DR-4405,Flooding,flood,2,0,0,unknown,0.0039,0.36098136290515104,
+DR-4408,Severe Storms And Flooding,severe_storm,11,2,0,unknown,0.0345,0.4244977151065171,0.0
+DR-4416,Severe Storms And Flooding,flood,36,8,0,unknown,0.0385,0.40097081168536564,0.0
+DR-4420,"Severe Winter Storm, Straight-Line Winds, And Flooding",flood,32,5,0,unknown,0.0106,0.32032908985277636,0.0
+DR-4434,"Severe Winter Storms, Flooding, Landslides, And Mudslides",severe_storm,18,3,0,unknown,0.04965,0.4052861358253008,0.0
+DR-4441,Severe Storms And Flooding,flood,17,8,0,unknown,0.0991,0.3852122278085337,0.0
+DR-4445,Severe Storms And Flooding,flood,6,1,0,unknown,0.04975,0.3510969177676331,0.0
+DR-4461,Severe Storms And Flooding,flood,28,8,0,unknown,0.047700000000000006,0.29825128800010753,0.0
+DR-4475,Flooding,flood,10,1,0,unknown,0.0114,0.39125896182987074,0.0
+DR-4477,Severe Winter Storm And Flooding,flood,3,0,0,unknown,0.0242,0.2670972616930622,
+DR-4519,"Severe Storms, Flooding, Landslides, And Mudslides",flood,3,0,0,unknown,0.0366,0.411383503467595,
+DR-4536,"Severe Storms, Tornadoes, Straight-Line Winds, And Flooding",severe_storm,29,24,24,unknown,0.2852,0.599893738334655,1.0
+DR-4541,"Severe Storms, Tornadoes, Straight-Line Winds, And Flooding",severe_storm,9,4,3,unknown,0.0766,0.5166096316769547,0.75
+DR-4553,Flooding,flood,14,2,0,unknown,0.044149999999999995,0.4230071954632079,0.0
+DR-4554,"Severe Storms, Straight-Line Winds, And Tornadoes",severe_storm,10,10,9,unknown,0.29569999999999996,0.5348150899612213,0.9
+DR-4590,Severe Winter Storms,severe_ice_storm,64,48,48,unknown,0.2404,0.7775321910197808,1.0
+DR-4594,Severe Winter Storms,severe_ice_storm,11,5,5,unknown,0.0677,0.7643151847946349,1.0
+DR-4632,Severe Storms And Flooding,severe_storm,2,0,0,unknown,0.0223,0.4754184254431828,
+DR-4639,"Severe Storms, Flooding, And Landslides",severe_storm,2,0,0,unknown,0.0596,0.5338497982347681,
+DR-4641,"Severe Storms, Straight-Line Winds, And Tornadoes",severe_storm,17,12,12,unknown,0.1856,0.5713208392825679,1.0
+DR-4657,"Severe Storms, Tornadoes, And Flooding",severe_storm,7,1,1,unknown,0.0569,0.6113383044646031,1.0
+DR-4659,"Severe Storms, Straight-Line Winds, And Flooding",flood,13,3,0,unknown,0.0383,0.39860416571259216,0.0
+DR-4663,"Severe Storms, Flooding, Landslides, And Mudslides",flood,20,14,11,unknown,0.1528,0.49569402118826333,0.7857142857142857
+DR-4664,"Severe Storm, Straight-Line Winds, Tornadoes, And Flooding",severe_storm,6,6,6,unknown,0.24185,0.6209974146843239,1.0
+DR-4666,"Severe Storms, Straight-Line Winds, Tornadoes, And Flooding",severe_storm,23,13,13,unknown,0.1183,0.5919518867197118,1.0
+DR-4696,Severe Storm And Flooding,severe_storm,6,6,6,unknown,0.37860000000000005,0.6646213900384728,1.0
+DR-4720,"Severe Storms, Flooding, Landslides, And Mudslides",flood,14,6,0,unknown,0.08399999999999999,0.4454699033779958,0.0
+DR-4727,"Severe Storms, Straight-Line Winds, And Tornadoes.",severe_storm,28,25,25,unknown,0.38155,0.615177007375754,1.0
+DR-4728,Severe Storms And Flooding,severe_storm,21,20,20,unknown,0.4398,0.6079379100102081,1.0
+DR-4729,Severe Storms And Straight-Line Winds,severe_storm,3,3,2,unknown,0.3432,0.5368578291472513,0.6666666666666666
+DR-4731,"Severe Storms, Flooding, And Tornadoes",flood,13,2,0,unknown,0.0347,0.4103655152050688,0.0
+DR-4732,Flooding,flood,7,0,0,unknown,0.0345,0.4092770727261504,
+DR-4741,"Severe Storms, Straight-Line Winds, Tornadoes, And Flooding",severe_storm,33,24,24,unknown,0.1534,0.6232513030353366,1.0
+DR-4742,"Severe Storms, Straight-Line Winds, And Tornado",severe_storm,10,10,9,unknown,0.2872,0.5491435611033967,0.9
+DR-4753,"Severe Storms, Flooding, And Tornadoes",severe_storm,1,0,0,unknown,0.05,0.4612617646359831,
+DR-4756,"Severe Storms, Flooding, Landslides, And Mudslides",flood,6,2,2,unknown,0.07755000000000001,0.5013044281815672,1.0
+DR-4757,"Severe Storms, Tornadoes, And Flooding",flood,9,7,0,unknown,0.2125,0.3244307743426287,0.0
+DR-4768,"Severe Winter Storms, Straight-Line Winds, Landslides, And Mudslides",severe_storm,12,9,7,unknown,0.163,0.6146688644909256,0.7777777777777778
+DR-4770,Severe Winter Storm,severe_storm,5,5,5,unknown,0.1726,0.6211661380093448,1.0
+DR-4775,"Severe Winter Storms, Straight-Line Winds, Flooding, Landslides, And Mudslides",severe_storm,12,6,6,unknown,0.0942,0.5986343719211574,1.0
+DR-4784,"Severe Storms, Tornadoes, And Flooding",severe_storm,29,19,18,unknown,0.1232,0.6383146700660501,0.9473684210526315
+DR-4787,"Severe Storms, Flooding, Landslides, And Mudslides",flood,13,8,6,unknown,0.1304,0.5377861003907911,0.75
+DR-4790,"Severe Storms, Straight-Line Winds, Tornadoes, And Flooding",severe_storm,6,5,5,unknown,0.16375,0.5870345297649894,1.0
+DR-4797,Severe Storms And Flooding,flood,32,2,0,unknown,0.01805,0.45397162048310524,0.0
+DR-4800,"Severe Storms, Straight-Line Winds, Tornadoes, And Flooding",severe_storm,12,5,5,unknown,0.08499999999999999,0.5889589330150443,1.0
+DR-4811,"Severe Storm, Straight-Line Winds, Tornadoes, And Flooding",severe_storm,14,7,6,unknown,0.11860000000000001,0.5811941085312268,0.8571428571428571
+DR-4826,"Severe Storms, Flooding, Landslides, And Mudslides",flood,3,3,3,unknown,0.161,0.5072695301824427,1.0
+DR-4843,Severe Storm And Flooding,flood,1,0,0,unknown,0.018,0.5076398952468294,
+DR-4855,"Severe Storms, Tornadoes, Straight-Line Winds, And Flooding",severe_storm,14,3,3,unknown,0.06760000000000001,0.6191593048930455,1.0
+DR-4860,"Severe Storms, Straight-Line Winds, Flooding, Landslides, And Mudslides",severe_storm,68,36,36,unknown,0.10835,0.6714863893282293,1.0
+DR-4861,"Severe Storm, Straight-Line Winds, Flooding, Landslides, And Mudslides",severe_storm,12,9,9,unknown,0.1624,0.6124227581425339,1.0
+DR-4862,"Severe Storms, Straight-Line Winds, Tornadoes, And Flooding",severe_storm,8,6,6,unknown,0.18665,0.6101849271456972,1.0
+DR-4864,"Severe Storms, Straight-Line Winds, Tornadoes, Flooding, Landslides, And Mudslid",severe_storm,90,42,42,unknown,0.09675,0.7198418746660938,1.0
+DR-4869,"Severe Winter Storm, Straight-Line Winds, Flooding, And Wildfires",severe_storm,26,20,20,unknown,0.28235,0.6105943273660299,1.0
+DR-4882,"Severe Storms, Straight-Line Winds, Tornadoes, And Flooding",flood,24,15,6,unknown,0.1135,0.4635146216284105,0.4
+DR-4885,Severe Storms And Flooding,severe_storm,5,4,4,unknown,0.161,0.651525578040127,1.0
+DR-4901,Severe Storms And Flooding,flood,1,0,0,unknown,0.0328,0.6034093426283853,
+EP092023,Hilary,tropical,5,1,1,unknown,0.0132,0.4984495301325037,1.0
