@@ -378,7 +378,7 @@ What we take from it:
 - The most useful features are the year, the NHC wind radius and the storm type (permutation
   importance in the notebook). The wind radius only exists for Atlantic storms, which is why adding
   HURDAT2 wind speed and pressure is our next step.
-- The year comes first, which is not a weather effect. The share of counties with a major outage
+- The year comes first, which is unlikely to be a weather effect. The share of counties with a major outage
   rises from about 35% in 2015 to about 60% in 2021 to 2025. EAGLE-I coverage is incomplete in the
   early years (`data/LIMITS.md`), so part of the outages were not reported then, and the mix of storms
   also changes from year to year. The year mostly captures these changes in the data, so its
