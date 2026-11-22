@@ -356,7 +356,7 @@ random forest reaches:
 
 | Metric | Random forest | Reference |
 |---|---|---|
-| ROC AUC | **0.707** | night light only: 0.563 (no model) |
+| ROC AUC | **0.707** | night light only: 0.563 (no model, training storms) |
 | Accuracy | 0.668 | always predicting the majority class: 0.522 |
 | Precision | 0.637 | |
 | Recall | 0.708 | |
@@ -378,6 +378,11 @@ What we take from it:
 - The most useful features are the year, the NHC wind radius and the storm type (permutation
   importance in the notebook). The wind radius only exists for Atlantic storms, which is why adding
   HURDAT2 wind speed and pressure is our next step.
+- The year comes first, which is not a weather effect. The share of counties with a major outage
+  rises from about 35% in 2015 to about 60% in 2021 to 2025. EAGLE-I coverage is incomplete in the
+  early years (`data/LIMITS.md`), so part of the outages were not reported then, and the mix of storms
+  also changes from year to year. The year mostly captures these changes in the data, so its
+  importance should not be read as "outages get worse every year".
 - Splitting by storm matters: the same gradient boosting model scores 0.698 when split by storm but
   0.793 with a random split, which would overstate how well it works on a new storm.
 
