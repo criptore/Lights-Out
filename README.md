@@ -16,7 +16,7 @@
 When a storm hits the United States, some counties lose power for a few hours and others for weeks. Using a public
 dataset of 672 storms from 2012 to 2026, which joins the outages reported by power utilities county by county with
 satellite pictures of the lights at night, we train machine learning models for two questions: will a county have a
-**major outage** (more than 10% of its customers without power), and **how long** will it take to bring 90% of them
+major outage (more than 10% of its customers without power), and how long will it take to bring 90% of them
 back? We use only information available when the storm hits, and we always test the models on storms they have never
 seen. Night light alone barely detects outages (AUC 0.56 to 0.60, where 0.5 is a coin flip). A random forest that
 knows the storm type, the state, the date, the size of the county and whether it lies in the hurricane's wind radius
