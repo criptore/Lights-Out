@@ -358,7 +358,7 @@ random forest reaches:
 
 | Metric | Random forest | Reference |
 |---|---|---|
-| ROC AUC | **0.707** | night light only: 0.563 (no model, training storms) |
+| ROC AUC | **0.707** | night light only (no model): 0.600 on the same test storms, 0.563 on the training storms |
 | Accuracy | 0.668 | always predicting the majority class: 0.522 |
 | Precision | 0.637 | |
 | Recall | 0.708 | |
@@ -387,6 +387,53 @@ What we take from it:
   importance should not be read as "outages get worse every year".
 - Splitting by storm matters: the same gradient boosting model scores 0.698 when split by storm but
   0.793 with a random split, which would overstate how well it works on a new storm.
+
+**Cross-validation vs test.** The tuned random forest scores between 0.678 and 0.770 on the five storm
+folds, and its test AUC falls inside that range:
+
+| | Cross-validation (5 storm folds) | Test (93 storms) |
+|---|---|---|
+| Random forest (tuned) | 0.721 ± 0.032 (folds: 0.678 to 0.770) | 0.707 |
+| Logistic regression | 0.706 ± 0.027 | |
+| Gradient boosting | 0.698 ± 0.033 | |
+| Storm-type lookup table | 0.607 ± 0.070 | |
+| Night light only (no model) | 0.563 (training storms) | 0.600 |
+
+The spread between folds is large: depending on which storms are held out, the AUC moves by almost 0.1. With only
+about 90 storms per fold, a single test score should be read with that uncertainty in mind.
+
+**Choosing the decision threshold.** The model outputs a probability, and the label depends on the threshold.
+Missing a major outage (no crews sent) costs more than a false alarm (crews on standby for nothing), so 0.5 is not
+necessarily the right choice. On the test storms (1,991 counties, 951 major outages):
+
+| Threshold | Precision | Recall | F1 | Major outages found | False alarms |
+|---|---|---|---|---|---|
+| 0.3 | 0.521 | 0.958 | 0.675 | 911 of 951 | 836 |
+| 0.4 | 0.564 | 0.848 | 0.678 | 806 of 951 | 622 |
+| 0.5 | 0.637 | 0.708 | 0.671 | 673 of 951 | 383 |
+
+Going from 0.5 to 0.4 finds 133 more major outages for 239 more false alarms, so it is worth it as soon as a missed
+major outage costs more than about 1.8 false alarms, which is likely for a utility planning its crews. At 0.3 the
+model flags almost every county (836 false alarms out of 1,040 counties without a major outage). The F1 score barely
+moves (0.67 to 0.68): the choice depends on the cost of each error, not on the model. This table is shown for
+illustration; in practice the threshold would be chosen on the training folds, and all the other results keep 0.5.
+
+**Errors per storm.** Counties of the same storm share the weather, so the model tends to be right or wrong for a
+whole storm at once. Among the 47 test storms with at least 5 major outages, the median recall per storm is 0.88,
+but 13 storms are below 0.5 and 8 have a recall of 0.
+
+![Recall per test storm](figures/classifier_recall_per_storm.png)
+
+- **By storm type**, the recall is 0.88 for severe storms, 0.65 for tropical storms, 0.24 for floods and 0.07 for
+  snowstorms. 7 of the 8 storms where the model finds no major outage at all are floods (for example DR-4317,
+  Missouri, 2017: 11 major outages, none found). Floods cause a major outage in only 34% of their counties (Part II),
+  so the model learns to predict "not major" for them.
+- **The storm with the most missed major outages is Hurricane Ida (2021):** 45 missed out of 78. The model found all
+  33 major outages *inside* the NHC wind radius and none of the 45 *outside* it: counties of Mississippi and Louisiana
+  outside the 34-knot radius, and New Jersey, Pennsylvania and New York, hit by Ida's remnants as flooding. In the
+  training storms, only 31% of tropical-storm counties outside the radius have a major outage, against 69% inside,
+  so the model relies on the radius. Ida shows the limit of this rule: a storm can still cause large outages outside
+  the radius, and only wind speed or rainfall data could separate these cases.
 
 *Restoration-time regression: in progress.*
 
