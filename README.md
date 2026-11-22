@@ -38,6 +38,8 @@ peak explains about 20%. We describe each step, from the raw data to the errors 
 - [IV. Evaluation & Analysis](#iv-evaluation--analysis)
 - [V. Related Work](#v-related-work)
 - [VI. Conclusion: Discussion](#vi-conclusion-discussion)
+- [Appendix: How to run](#appendix-how-to-run)
+- [References](#references)
 
 ## I. Introduction
 
@@ -130,12 +132,12 @@ much storm intensity improves them.
 things we want to predict look like.*
 
 [Storm Blackout and Restoration](https://www.kaggle.com/datasets/heimdallresearch/storm-blackout)
-v1.2 by Heimdall Research (DOI [10.5281/zenodo.23010005](https://doi.org/10.5281/zenodo.23010005)).
+v1.2 by Heimdall Research [1] (DOI [10.5281/zenodo.23010005](https://doi.org/10.5281/zenodo.23010005)).
 It covers 672 FEMA-declared U.S. storms from 2012-01-14 to 2026-08-11 and gives, for each storm and
 county, two views of the same blackouts:
 
-- **Night light from space:** NASA Black Marble (VIIRS) radiance before and after the storm.
-- **Outages reported by utilities:** DOE EAGLE-I records (from 2014-11 onward): peak customers out,
+- **Night light from space:** NASA Black Marble (VIIRS) [2] radiance before and after the storm.
+- **Outages reported by utilities:** DOE EAGLE-I records [3] (from 2014-11 onward): peak customers out,
   share of customers out, customer-hours and restoration times.
 
 ### Files
@@ -437,7 +439,7 @@ whether more than 10% of a county's customers lose power at the peak, using only
 the storm hits.
 
 **Cross-validation (training storms, split by storm).** Every model beats the simple baselines except
-Naive Bayes. The random forest is the best (ROC AUC 0.720), just ahead of logistic regression (0.706)
+Naive Bayes. The random forest [11] is the best (ROC AUC 0.720), just ahead of logistic regression (0.706)
 and gradient boosting (0.698). Using night light alone, with no model, gives an AUC of only 0.563,
 barely above chance (0.5) and close to what the dataset authors report (0.52 to 0.57).
 
@@ -525,6 +527,52 @@ but 13 storms are below 0.5 and 8 have a recall of 0.
   so the model relies on the radius. Ida shows the limit of this rule: a storm can still cause large outages outside
   the radius, and only wind speed or rainfall data could separate these cases.
 
+**Results per storm type.** The same test predictions, grouped by storm type (threshold 0.5; *major share* is the share of counties with a
+major outage):
+
+| Storm type | Storms | Counties | Major share | Precision | Recall | F1 |
+|---|---|---|---|---|---|---|
+| Severe storm | 48 | 724 | 55% | 0.62 | 0.88 | 0.73 |
+| Tropical storm | 7 | 701 | 51% | 0.65 | 0.65 | 0.65 |
+| Flood | 32 | 430 | 27% | 0.68 | 0.24 | 0.35 |
+| Ice storm | 2 | 75 | 71% | 0.71 | 1.00 | 0.83 |
+| Snowstorm | 3 | 38 | 37% | 0.50 | 0.07 | 0.12 |
+| Tornado | 1 | 23 | 35% | 0.47 | 1.00 | 0.64 |
+
+The model works best on severe storms and ice storms, and worst on floods and snowstorms, where it finds less than a
+quarter of the major outages. The rarer types have only one to three test storms, so their scores mostly describe
+those few storms.
+
+**Top-K: where to send crews first.** A utility does not need a yes/no answer for every county as much as a ranking:
+which counties to check first. We sort the 1,991 test counties by predicted risk and look at the top of the list:
+
+| Counties checked first | Counties | Major outages among them | Hit rate | Share of all major outages found |
+|---|---|---|---|---|
+| 5% | 100 | 65 | 65% | 7% |
+| 10% | 199 | 144 | 72% | 15% |
+| 20% | 398 | 264 | 66% | 28% |
+| 30% | 597 | 411 | 69% | 43% |
+
+Picking counties at random gives a hit rate of 48% (the share of major outages in the test storms). The top 10% of
+the ranking reaches 72%: one and a half times better than chance. The hit rate stays around 66% to 69% further down
+the list, so the ranking is useful at the top but does not separate the counties sharply.
+
+**Is the model only learning the year?** The year is the most important feature, and Part II showed that early years
+are under-reported in EAGLE-I. To check that the model does not only learn this, we retrain the tuned random forest
+without the year, and we also train on the storms up to 2022 and test on the storms from 2023 onward, which mimics
+using the model on future storms:
+
+| Features | CV AUC (5 storm folds) | Test AUC (93 storms) | Future storms (train up to 2022, test 2023+) |
+|---|---|---|---|
+| With year | 0.721 ± 0.032 | 0.707 | 0.675 |
+| Without year | 0.695 ± 0.030 | 0.678 | 0.657 |
+
+Removing the year costs about 0.03 of AUC, and the model still clearly beats night light alone (0.56 to 0.60) and the
+storm-type lookup table (0.61). So the year helps, but most of the signal comes from the storm and the county. On
+future storms the AUC drops to about 0.66 to 0.68: 2023 to 2025 have more major outages (57% of the counties against
+46% before), and a model trained on the past under-estimates this level. In practice the model would need to be
+retrained each season.
+
 *Restoration-time regression: in progress.*
 
 ## V. Related Work
@@ -534,11 +582,106 @@ but 13 storms are below 0.5 and 8 have a recall of 0.
   [`data/LIMITS.md`](data/LIMITS.md)). County mean darkness has a pooled AUC of 0.515 (418 storms,
   5,841 counties), lit-pixel radiance drop 0.559 and change in the share of unlit lit-mask pixels
   0.566 (287 storms, 3,611 counties). An AUC of 0.5 is chance.
+- **Outage prediction for storms.** Statistical models of hurricane and ice-storm outages using wind, network and
+  land-cover data [7], hurricane outage forecasts for storm response planning [8], and models of outage duration
+  [9]. These studies use detailed utility network data for one region; we only have open county-level data for
+  the whole country, which explains part of the gap in accuracy.
 - **Data sources:** NASA Black Marble, EAGLE-I / ORNL, EIA, U.S. Census Bureau, OpenFEMA, NOAA NHC
   (see [`data/NOTICE.md`](data/NOTICE.md)).
-- **Tools and libraries:** Python, pandas, matplotlib, Jupyter (see
+- **Tools and libraries:** Python, pandas, matplotlib, scikit-learn [4], Jupyter (see
   [`requirements.txt`](requirements.txt)).
 
 ## VI. Conclusion: Discussion
 
-*In progress.*
+*In short: what we can answer, what limits the answer, and what we would do next.*
+
+### What we found
+
+- **Whether a county will have a major outage can be predicted, but only moderately well.** With features known when
+  the storm hits, a tuned random forest reaches an AUC of 0.707 on 93 storms it has never seen (0.721 in
+  cross-validation), against 0.56 to 0.60 for satellite night light alone and 0.61 for a storm-type lookup table. Used
+  as a ranking, the 10% of counties it flags first contain 72% of major outages, against 48% at random.
+- **How long the restoration takes is much harder.** With the same storm-time features, no model really beats a
+  constant prediction (R² about 0.05 on unseen storms). Knowing the size of the outage at its peak helps a lot: R² about
+  0.21, with a median error of about 16 hours instead of 22 hours for the constant.
+- **Night light from space is not a reliable outage detector on its own** (AUC 0.52 to 0.57, as the dataset authors
+  found): clouds, generators and damaged buildings blur the signal.
+- **Splitting by storm is essential.** A random split overstates both models (AUC 0.79 instead of 0.70, R² 0.25 instead
+  of 0.19), because counties of the same storm look alike.
+
+### Limits
+
+- **The data.** EAGLE-I covers only part of the customers in the early years, so the target itself changes over time;
+  the year is the most important feature partly for this reason. The 34-knot wind radius exists only for tropical
+  storms, and there is no wind speed, rainfall or network damage for the other storm types.
+- **Censoring.** Restoration times longer than the 45-day window are unknown, and we model only completed
+  restorations.
+- **The evaluation.** A single test split of about 90 storms, with fold-to-fold variations of almost 0.1 of AUC. Errors
+  are shared by whole storms: floods and storms like Ida, whose damage falls outside the wind radius, are missed
+  as a block.
+- **Time.** Trained up to 2022, the classifier loses about 0.03 of AUC on storms from 2023 onward.
+
+### Future work
+
+- **Storm intensity from NOAA HURDAT2** [10] (maximum wind and minimum pressure), joined on the NOAA storm identifiers, to
+  measure how much intensity improves both models, in particular for tropical storms like Ida.
+- **Survival analysis** (Cox models, random survival forests, with `lifelines` [5] or `scikit-survival` [6]) to use the
+  censored counties as "at least this long" instead of dropping them.
+- **Retraining each season** and choosing the decision threshold from the cost of a missed outage against a false
+  alarm, as a utility would do in practice.
+
+## Appendix: How to run
+
+Everything runs on a laptop in a few minutes, from the repository root:
+
+```bash
+pip install -r requirements.txt
+cd notebooks
+for nb in 0*.ipynb; do   # 01 to 04, in order
+  jupyter nbconvert --to notebook --execute --inplace $nb
+done
+```
+
+- **Notebooks.** `01_eda` explores the data (Part II), `02_classifier` (about 5 minutes) and `03_regression` (about
+  1 minute) train and evaluate the models (Parts III and IV), and `04_report_figures` redraws every figure of this
+  report into `figures/` without retraining anything.
+- **Results.** `02_classifier` saves its numbers in `results/` (cross-validation scores, test predictions, thresholds,
+  results per storm, per storm type, top-K and the year check), so the tables of Part IV can be checked without
+  rerunning it.
+- **Reproducibility.** The data is in `data/` (dataset v1.2, unchanged). All random steps use seed 0: the storm split
+  (`GroupShuffleSplit`, 20% of the storms kept for the test), the folds and the models. With scikit-learn 1.9 we get
+  the numbers above; other versions can move the third decimal.
+- **Two-column PDF.** The IEEE version of this report is built from this README with pandoc and LaTeX (IEEEtran):
+  `python3 report/build.py . report`, then `pdflatex lights-out-ieee.tex` twice in `report/`.
+
+## References
+
+[1] Heimdall Research, "Storm Blackout and Restoration," dataset, version 1.2, 2026. doi: 10.5281/zenodo.23010005.
+
+[2] M. O. Román *et al.*, "NASA's Black Marble nighttime lights product suite," *Remote Sens. Environ.*, vol. 210,
+pp. 113–143, 2018. doi: 10.1016/j.rse.2018.03.017.
+
+[3] Oak Ridge National Laboratory, "EAGLE-I county outage records," Figshare, 2023. doi: 10.6084/m9.figshare.24237376.
+
+[4] F. Pedregosa *et al.*, "Scikit-learn: Machine learning in Python," *J. Mach. Learn. Res.*, vol. 12,
+pp. 2825–2830, 2011.
+
+[5] C. Davidson-Pilon, "lifelines: Survival analysis in Python," *J. Open Source Softw.*, vol. 4, no. 40, p. 1317,
+2019.
+
+[6] S. Pölsterl, "scikit-survival: A library for time-to-event analysis built on top of scikit-learn," *J. Mach.
+Learn. Res.*, vol. 21, no. 212, pp. 1–6, 2020.
+
+[7] H. Liu, R. A. Davidson, and T. V. Apanasovich, "Spatial generalized linear mixed models of electric power outages
+due to hurricanes and ice storms," *Reliab. Eng. Syst. Saf.*, vol. 93, no. 6, pp. 897–912, 2008.
+
+[8] S. D. Guikema *et al.*, "Predicting hurricane power outages to support storm response planning," *IEEE Access*,
+vol. 2, pp. 1364–1373, 2014.
+
+[9] R. Nateghi, S. D. Guikema, and S. M. Quiring, "Forecasting hurricane-induced power outage durations," *Nat.
+Hazards*, vol. 74, no. 3, pp. 1795–1811, 2014.
+
+[10] C. W. Landsea and J. L. Franklin, "Atlantic hurricane database uncertainty and presentation of a new database
+format," *Mon. Weather Rev.*, vol. 141, no. 10, pp. 3576–3592, 2013.
+
+[11] L. Breiman, "Random forests," *Mach. Learn.*, vol. 45, no. 1, pp. 5–32, 2001.

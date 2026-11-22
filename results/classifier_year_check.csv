@@ -1,0 +1,5 @@
+features,CV AUC (mean ± std),test AUC (93 storms),future AUC (2023+)
+with year,0.721 ± 0.032,0.7066109560786217,
+without year,0.695 ± 0.030,0.6775570249939334,
+"with year, train ≤ 2022 / test ≥ 2023",,,0.6746212775070547
+"without year, train ≤ 2022 / test ≥ 2023",,,0.6574466474601524
