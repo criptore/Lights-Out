@@ -40,8 +40,9 @@ customers out at the peak (`peak_share_out > 0.10`). The second is a regression 
 predicts `hours_to_90pct_restored`, the time needed to bring 90% of customers back. We will also
 test whether satellite night light alone can detect an outage: the dataset authors report an AUC
 of only about 0.55, barely above chance, and we will discuss why (generators, clouds, damaged
-buildings). Finally, we will add wind speed and pressure from NOAA HURDAT2, joined on the NOAA
-storm identifiers (for example AL022019), and measure how much they improve the models.
+buildings). As a follow-up to this project, the models could be enriched with wind speed and
+pressure from NOAA HURDAT2, joined on the NOAA storm identifiers (for example AL022019), to measure
+how much storm intensity improves them.
 
 ## II. Datasets
 
@@ -330,11 +331,12 @@ forests), which treats a censored row as "at least this long". We discuss it as 
 Counties with `reporting_drop` (the feed stopped) have an unknown time with no reason to be longer or
 shorter, so they are simply dropped.
 
-### 9. Next step: storm intensity from HURDAT2
+### 9. Future work: storm intensity from HURDAT2
 
 Storm type is a weak description of how violent a storm was. For the storms with a NOAA id (`AL…`,
-`EP…`), we will join NOAA HURDAT2 maximum wind speed and minimum pressure on the storm id, rerun the
-same protocol, and measure how much these features improve both models.
+`EP…`), the natural follow-up is to join NOAA HURDAT2 maximum wind speed and minimum pressure on the
+storm id, rerun the same protocol, and measure how much these features improve both models. This is
+left for future work and is not part of the results below.
 
 ## IV. Evaluation & Analysis
 
@@ -377,7 +379,7 @@ What we take from it:
   from perfect: storm and county descriptions only explain part of who loses power.
 - The most useful features are the year, the NHC wind radius and the storm type (permutation
   importance in the notebook). The wind radius only exists for Atlantic storms, which is why adding
-  HURDAT2 wind speed and pressure is our next step.
+  HURDAT2 wind speed and pressure is the natural follow-up.
 - The year comes first, which is unlikely to be a weather effect. The share of counties with a major outage
   rises from about 35% in 2015 to about 60% in 2021 to 2025. EAGLE-I coverage is incomplete in the
   early years (`data/LIMITS.md`), so part of the outages were not reported then, and the mix of storms
