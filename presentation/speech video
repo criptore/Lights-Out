@@ -1,0 +1,70 @@
+Lights Out: presentation notes (That's the basis we used to show this in the video)
+Summary :
+When a storm hits the United States, some counties lose power for hours and others for weeks. We used 672 storms (2012 to 2026) to ask two questions: will a county have a major outage, and how long will recovery take?
+
+Major outage: predictable, but only moderately. Random forest, AUC 0.71 on storms it never saw.
+Recovery time: much harder. R² 0.05 when the storm hits, 0.21 once the size of the outage is known.
+Satellite night light alone: not reliable. AUC 0.56, barely above a coin flip.
+Method: split by whole storm, otherwise the scores look better than they are.
+Notes by slide
+1. Title
+Predict storm outages and recovery, county by county
+2. The problem
+Damage is very uneven, and crews are sent before it is known
+Question 1: more than 10% of customers out at the peak? (classification)
+Question 2: hours from the peak until 90% are back? (regression)
+One prediction = one county during one storm
+3. The data
+672 FEMA-declared storms, 51,493 storm × county rows
+Two views: utility reports (EAGLE-I) and satellite night light (NASA Black Marble)
+Usable rows: 9,989 for question 1, 7,297 for question 2
+4. The targets
+
+49.6% of rows are major outages: two balanced classes
+Recovery: median 30 h, maximum 1,009 h, so we predict log(hours)
+1,165 counties not restored within 45 days: true time unknown (censored)
+5. The method
+
+Only information known at prediction time
+20% of storms kept for the final test, 5 grouped folds for the rest
+Simple baselines first, then five models, best one tested once
+Random split would give AUC 0.79 instead of 0.70, R² 0.25 instead of 0.19
+6. Major outage: results
+
+Night light 0.56, storm-type table 0.61, random forest 0.72 (cross-validation)
+Final test on 93 new storms: 0.707
+Every model except Naive Bayes beats the simple rules
+7. How useful is it?
+
+Threshold 0.5: finds 673 of 951 major outages (71%), 383 false alarms
+Threshold 0.4: 133 more found, 239 more false alarms
+Best use is a ranking: 72% of the 10% riskiest counties had a major outage, against 48% at random
+8. Where it fails
+
+Major outages found: severe storms 88%, tropical 65%, floods 24%, snow 7%
+Errors come by whole storms: 8 storms at zero, 7 of them floods
+Without the year: AUC 0.68. On storms from 2023: about 0.68. Retrain every season
+9. Recovery time
+
+Storm information only: R² 0.05
+With the size of the outage at its peak: R² 0.21, median error 16 h (22 h for the average)
+Missing: storm strength, network damage, crews, blocked roads
+10. Hurricane Ida (2021)
+
+193 counties, 78 major outages, never seen in training
+Inside the wind radius: 33 of 33 found, 8 false alarms
+Outside: 0 of 45 at threshold 0.5. At 0.4, 16 are found
+Reason: no wind speed or rainfall data
+11. The satellite
+
+New Orleans and Houma almost dark five days after landfall
+Baton Rouge looks normal, yet 69% of its customers were out at the peak
+It only sees outages still going on, and clouds hide the nights between
+
+12. Conclusion and next steps
+Add storm strength (NOAA HURDAT2)
+Survival analysis for the censored counties
+Retrain every season, choose the threshold from the cost of a missed outage
+
+13. the end 
+Code, notebooks and results: github.com/criptore/Lights-Out
