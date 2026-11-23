@@ -1,8 +1,32 @@
 {
- "model":"Random forest",
- "max_features":"sqrt",
- "min_samples_leaf":20,
- "cv_auc_mean":0.7212544502,
- "cv_auc_std":0.0316339414,
- "test_auc":0.7066109561
+ "model": "Random forest",
+ "max_features": "sqrt",
+ "min_samples_leaf": 20,
+ "cv_auc_mean": 0.7212544502,
+ "cv_auc_std": 0.0316339414,
+ "test_auc": 0.7066109561,
+ "n_estimators": 300,
+ "random_state": 0,
+ "features": [
+  "kind",
+  "state",
+  "wind_radius",
+  "year",
+  "month",
+  "log_customers",
+  "log_baseline"
+ ],
+ "target": "peak_share_out > 0.10",
+ "train_rows": 7998,
+ "train_storms": 369,
+ "cv_auc_folds": [
+  0.6781,
+  0.7136,
+  0.7413,
+  0.7035,
+  0.7699
+ ],
+ "model_file": "models/classifier.joblib",
+ "model_sha256": "ecb0ded84fe7e6b09d404b904d0845b5835f201ffb4bdd242078a8be16c017c6",
+ "scikit_learn": "1.9.1"
 }
