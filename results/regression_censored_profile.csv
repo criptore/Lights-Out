@@ -1,0 +1,4 @@
+group,rows,median_peak_customers,median_peak_share,median_customers
+known,7297,2733.0,0.1383,17481.3
+not_restored_in_window,1165,153.0,0.0193,7117.7
+reporting_drop,1752,1128.5,0.0597,16823.1

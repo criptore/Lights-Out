@@ -573,7 +573,127 @@ future storms the AUC drops to about 0.66 to 0.68: 2023 to 2025 have more major 
 46% before), and a model trained on the past under-estimates this level. In practice the model would need to be
 retrained each season.
 
-*Restoration-time regression: in progress.*
+### Restoration-time regression
+
+The full analysis is in [`notebooks/03_regression.ipynb`](notebooks/03_regression.ipynb). The question is how many
+hours it takes, from the peak of the outage, until 90% of the customers have power again. The target is modelled as
+log(1 + hours), so the errors are relative ("off by a factor of 2"). We compare two sets of features (Part III):
+**setup A** uses only what is known when the storm hits, as for the classifier; **setup B** adds the size of the
+outage at its peak (number and share of customers out), which is known when the restoration starts.
+
+**Cross-validation (training storms, split by storm).** R² on log(hours), and the typical error factor exp(MAE):
+
+| Model | Setup A (storm time) | Setup B (at the peak) |
+|---|---|---|
+| Constant (mean) | -0.012 (x2.79) | |
+| Storm-type lookup table | -0.008 (x2.76) | |
+| Peak-size lookup table (10 groups) | | 0.078 (x2.62) |
+| Linear regression (ridge) | 0.028 (x2.71) | 0.084 (x2.58) |
+| k-nearest neighbours | -0.023 (x2.77) | 0.175 (x2.45) |
+| Decision tree (depth 6) | 0.008 (x2.73) | 0.189 (x2.40) |
+| Random forest | 0.028 (x2.70) | **0.218 (x2.36)** |
+| Gradient boosting | 0.003 (x2.73) | 0.186 (x2.39) |
+
+![Restoration time: models and baselines](figures/regression_models.png)
+
+- **With storm-time features only, no model beats the constant in a useful way** (best R² 0.03). Storm type, state,
+  date and county size tell us whether a county loses power (AUC 0.71 above), but almost nothing about how long it
+  stays dark.
+- **The size of the outage is what matters.** A lookup table on the peak size alone, with no model, already beats
+  every setup A model, and the tree ensembles of setup B reach an R² of about 0.2.
+- The linear model gains much less from setup B than the trees (0.084 against 0.19 to 0.22): the effect of the peak
+  size is not a straight line, and trees capture it more easily.
+
+**Two choices checked.**
+
+| Check | Result (cross-validation, setup B) |
+|---|---|
+| Random forest trained on raw hours vs log hours, errors measured in hours | median error 27.7 h vs **17.9 h**, mean error 50.5 h vs **44.7 h** |
+| Gradient boosting, split by storm vs random split | R² **0.186** vs 0.250 |
+
+The log target gives a better model even when the errors are counted in hours: trained on raw hours, the forest is
+pulled up by the few 500 to 1,000-hour restorations and over-predicts the many short ones. As for the classifier, a
+random split looks better because counties of the same storm restore at similar speeds; we keep the split by storm.
+
+**Final test (90 storms never seen during training, 1,263 counties).** After a small tuning step, the best model of
+each setup is tested once:
+
+| Model | R² (log) | Error factor | Median error | Mean error | Within a factor of 2 |
+|---|---|---|---|---|---|
+| Constant (training mean) | 0.00 | x2.79 | 22.0 h | 50.1 h | |
+| Setup A: random forest | 0.05 | x2.74 | 19.8 h | 49.7 h | 41% |
+| Setup B: gradient boosting | **0.21** | **x2.42** | **16.2 h** | **45.2 h** | **50%** |
+
+![Predicted vs true restoration time on the test storms](figures/regression_test.png)
+
+The test scores are close to the cross-validated scores of the tuned models (0.05 and 0.21 against 0.05 and 0.23),
+so the models were not over-tuned. The scatter plots show the limits clearly. Setup A predicts almost the same 17 to 39 hours for every
+county (5th to 95th percentile of its predictions). Setup B spreads its predictions more (12 to 62 hours), but it is
+still cautious: short restorations are over-predicted and long ones under-predicted. Even the best model leaves
+about 80% of the variance unexplained, and only half of its predictions are within a factor of 2 of the truth.
+
+**What the model relies on.** Permutation importance of the setup B model on the test storms (drop in R² when a
+feature is shuffled): share of customers out at the peak 0.176, number of customers out 0.165, county size 0.029,
+state 0.025; storm type, year, month, wind radius and night light each 0.005 or less. Once the size of the outage is
+known, the description of the storm adds almost nothing.
+
+**Errors per storm type.**
+
+| Storm type | Test storms | Counties | Error factor | Mean residual (log) |
+|---|---|---|---|---|
+| Severe storm | 50 | 589 | x2.43 | +0.08 |
+| Tropical storm | 7 | 356 | x2.08 | +0.04 |
+| Flood | 26 | 262 | x2.93 | -0.12 |
+| Winter storm | 2 | 18 | x2.16 | +0.52 |
+| Snowstorm | 2 | 16 | x2.59 | +0.19 |
+| Straight-line winds | 1 | 10 | x2.43 | +0.15 |
+
+A positive residual means the restoration took longer than predicted.
+
+![Errors per storm type on the test storms](figures/regression_errors_by_kind.png)
+
+- **Tropical storms are predicted best** (error factor 2.1): their counties are numerous and similar.
+- **Floods are predicted worst** (error factor 2.9), with the widest spread of errors. They are also the storm type with
+  the highest share of censored counties (below).
+- **Winter storms and snowstorms take longer than predicted**, but the test set has only two storms of each type,
+  so these numbers mostly describe those storms.
+- **Errors are shared by whole storms**, as for the classifier. The worst case is DR-4557 (severe storms in Iowa,
+  2020): its median county took 124 hours to recover and the model predicted about 32 hours for most of them.
+  Nothing in our features describes how violent that storm was.
+
+**The censored counties.** 1,165 counties with utility data were still above 10% of the peak when the 45-day window
+ended (`not_restored_in_window`), so their true restoration time is unknown and longer than observed. The model is
+trained without them. They are not the large outages we expected after the exploration:
+
+| Group | Counties | Median customers out at the peak | Median share out | Median customers in the county |
+|---|---|---|---|---|
+| Known restoration time | 7,297 | 2,733 | 13.8% | 17,481 |
+| Censored (`not_restored_in_window`) | 1,165 | 153 | 1.9% | 7,118 |
+| Feed stopped (`reporting_drop`) | 1,752 | 1,129 | 6.0% | 16,823 |
+
+A typical censored county is a small outage where a handful of customers stay out for weeks: 10% of a 150-customer
+peak is 15 customers. Floods (22% of their counties) and snowstorms (20%) are censored at the highest rate, tropical
+storms (5%) at the lowest; in absolute numbers, severe storms have the most censored counties because they have many
+more rows.
+
+- On the 203 censored counties of the test storms, the model predicts a median of 50 hours, against 25 hours for the
+  known counties: it already sees them as longer, but predicts more than a week for only 2% of them.
+- Keeping the 935 censored training counties with a stand-in value of 1,010 hours (the longest observed time) raises
+  their predicted median to 212 hours, but lowers the test R² on the known counties from 0.21 to 0.12: the stand-in
+  is too crude.
+
+So our regression describes **restorations completed within the 45-day window**, and slightly under-estimates
+restoration times, mostly for floods. Survival analysis, which treats a censored county as "at least this long", is
+the proper way to use these rows (Part VI).
+
+What we take from it:
+
+- **Predicting how long the power stays out is much harder than predicting whether it goes out.** With storm-time
+  features only, the R² is about 0.05 on new storms, almost no better than always predicting the average.
+- **Knowing how many customers are out at the peak is the key information**: R² 0.21, a typical error factor of 2.4
+  and a median error of 16 hours, against 22 hours for the constant.
+- **Most of the difference between counties remains unexplained.** What is missing is what makes repairs slow:
+  storm intensity, physical damage to the network, available crews, flooded or blocked roads.
 
 ## V. Related Work
 
@@ -647,7 +767,9 @@ done
   report into `figures/` without retraining anything.
 - **Results.** `02_classifier` saves its numbers in `results/` (cross-validation scores, test predictions, thresholds,
   results per storm, per storm type, top-K and the year check), so the tables of Part IV can be checked without
-  rerunning it.
+  rerunning it. `03_regression` does the same (`results/regression_*`: cross-validation and test scores, test
+  predictions, errors per storm type and per storm, permutation importance and the censoring checks) and saves its
+  three figures (`figures/regression_*.png`).
 - **Reproducibility.** The data is in `data/` (dataset v1.2, unchanged). All random steps use seed 0: the storm split
   (`GroupShuffleSplit`, 20% of the storms kept for the test), the folds and the models. With scikit-learn 1.9 we get
   the numbers above; other versions can move the third decimal.
