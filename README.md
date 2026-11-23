@@ -38,6 +38,7 @@ peak explains about 20%. We describe each step, from the raw data to the errors 
   - [Outages by storm type, state and year](#outages-by-storm-type-state-and-year)
 - [III. Methodology](#iii-methodology)
 - [IV. Evaluation & Analysis](#iv-evaluation--analysis)
+  - [Case study: Hurricane Ida (2021)](#case-study-hurricane-ida-2021)
 - [V. Related Work](#v-related-work)
 - [VI. Conclusion: Discussion](#vi-conclusion-discussion)
 - [Appendix: How to run](#appendix-how-to-run)
@@ -697,6 +698,58 @@ What we take from it:
 - **Most of the difference between counties remains unexplained.** What is missing is what makes repairs slow:
   storm intensity, physical damage to the network, available crews, flooded or blocked roads.
 
+### Case study: Hurricane Ida (2021)
+
+To see what the classifier does on one real storm, we look at Hurricane Ida, a test storm the model never saw during
+training. Ida made landfall in Louisiana on 29 August 2021 as a category 4 hurricane, then crossed Mississippi, and
+its remnants caused severe flooding in Pennsylvania, New Jersey and New York on 1 and 2 September. In our data it
+covers 193 scored counties in 7 states, 78 of them with a major outage, and about 1.2 million customers out at the
+peak in Louisiana alone.
+
+![Hurricane Ida: real major outages vs the classifier](figures/ida_case_study_map.png)
+
+The map (drawn by `04_report_figures` from `results/classifier_test_predictions.csv`) puts the real major outages
+on the left and the model's prediction at threshold 0.5 on the right. Counties with a thick outline are inside the
+NHC 34-knot wind radius. County shapes: U.S. Census Bureau cartographic boundaries (2010, public domain), saved in
+[`figures/ida_counties.geojson`](figures/ida_counties.geojson).
+
+| Ida counties (test) | Major outages | Found by the model | False alarms | Recall |
+|---|---|---|---|---|
+| Inside the wind radius | 33 of 41 | 33 | 8 | 1.00 |
+| Outside the wind radius | 45 of 152 | 0 | 0 | 0.00 |
+| All | 78 of 193 | 33 | 8 | 0.42 |
+
+- **Near the landfall the model does what a utility would want.** Every county inside the wind radius with a major
+  outage is flagged, around New Orleans and Baton Rouge, and 33 of the 41 flagged counties really had one
+  (80%, against 40% for Ida as a whole).
+- **Its answer is in practice "inside or outside the wind radius".** The lowest risk given to a county inside the
+  radius is 0.58 and the highest risk outside it is 0.45, so no threshold between the two changes anything for Ida.
+  Outside the radius, counties with a major outage still get a slightly higher risk on average (0.36) than the
+  others, which helps for ranking but is not enough to flag them.
+- **The model misses the two other faces of Ida:** the wide band of counties in Louisiana and Mississippi hit by
+  strong winds beyond the 34-knot radius, and the counties of Pennsylvania, New Jersey and New York flooded by the
+  remnants three days later. Nothing in our features describes wind speed or rainfall, so the model cannot tell
+  these counties apart. This is the main reason why HURDAT2 intensity and rainfall are our first future work (Part VI).
+
+**What the satellite saw.** Our models use tables only, not images. As an illustration of the event, NASA Black
+Marble images of the same family as the night-light columns of our dataset show southeast Louisiana on the clearest
+night before the landfall (23 August) and the clearest night after it (3 September), five days after landfall.
+New Orleans and Houma go from large bright areas to a few lit patches. Baton Rouge looks normal again, yet 69% of
+its customers were out at the peak: half of them had power back after 78 hours, against 157 hours in New Orleans
+(Orleans Parish) and 261 hours in Houma (Terrebonne Parish), so the satellite only sees the outages still going on
+that night:
+
+![Night lights over southeast Louisiana before and after Hurricane Ida](figures/ida_night_lights.png)
+
+*Image: NASA Black Marble VNP46A1 (VIIRS Day/Night Band, single nights, DOI 10.5067/VIIRS/VNP46A1.002), served by
+NASA GIBS; NASA data are free to use. The grey background on the left is moonlight (full moon on 22 August). Drawn
+by [`scripts/ida_night_lights.py`](scripts/ida_night_lights.py), which needs internet access.*
+
+On these two clear nights over a large city the outage is easy to see, but the nights in between are hidden by
+Ida's clouds, and Part V shows why night light alone is a weak outage detector county by county (AUC 0.52 to 0.57):
+clouds, generators and damaged buildings blur the signal. This is why our classifier relies on tabular features
+instead.
+
 ## V. Related Work
 
 - **Dataset authors' validation of night light.** The dataset authors scored night-light measures
@@ -768,7 +821,8 @@ done
 
 - **Notebooks.** `01_eda` explores the data (Part II), `02_classifier` (about 5 minutes) and `03_regression` (about
   1 minute) train and evaluate the models (Parts III and IV), and `04_report_figures` redraws every figure of this
-  report into `figures/` without retraining anything.
+  report into `figures/` without retraining anything, including the Hurricane Ida map. The Ida night-light figure
+  is drawn by `python scripts/ida_night_lights.py` (downloads two NASA images, needs internet access).
 - **Results.** `02_classifier` saves its numbers in `results/` (cross-validation scores, test predictions, thresholds,
   results per storm, per storm type, top-K and the year check), so the tables of Part IV can be checked without
   rerunning it. `03_regression` does the same (`results/regression_*`: cross-validation and test scores, test
