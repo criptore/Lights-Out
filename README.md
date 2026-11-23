@@ -752,10 +752,12 @@ What we take from it:
 
 ## Appendix: How to run
 
-Everything runs on a laptop in a few minutes, from the repository root:
+Everything runs on a laptop in a few minutes, from the repository root. The step-by-step guide (virtual
+environment, Windows commands, checks and common problems) is in [`SETUP.md`](SETUP.md), and the exact package
+versions we used are in [`requirements-lock.txt`](requirements-lock.txt). In short:
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-lock.txt
 cd notebooks
 for nb in 0*.ipynb; do   # 01 to 04, in order
   jupyter nbconvert --to notebook --execute --inplace $nb
