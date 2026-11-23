@@ -11,6 +11,8 @@
 | Erik Walter NIHLEN | Tekniska högskolan vid Linköpings universitet | Computer Science / Engineering | walni258@student.liu.se |
 | Thomas LHUILLIER BETTIN | Ecole central d'electronique | Computer Science / Engineering | thomaslhuillier78@gmail.com |
 
+**Video :** [`Lights-out presentation`](https://www.youtube.com/watch?v=RNhGCfvRVew&t=560s)
+
 **PDF version (IEEE two-column):** [`report/lights-out-ieee.pdf`](report/lights-out-ieee.pdf)
 
 ## Abstract
