@@ -1,0 +1,51 @@
+{
+ "final_models": {
+  "A": {
+   "model": "Random forest",
+   "max_features": "sqrt",
+   "max_leaf_nodes": null,
+   "min_samples_leaf": 20
+  },
+  "B": {
+   "model": "Gradient boosting",
+   "l2_regularization": 1.0,
+   "learning_rate": 0.03,
+   "max_features": 1.0,
+   "max_leaf_nodes": 15,
+   "min_samples_leaf": 20
+  }
+ },
+ "log_check_cv_hours": {
+  "raw hours": {
+   "mean abs. error (h)": 50.54611401760893,
+   "median abs. error (h)": 27.692639909992455
+  },
+  "log hours": {
+   "mean abs. error (h)": 44.65902491352999,
+   "median abs. error (h)": 17.887605335314696
+  }
+ },
+ "split_check_cv": {
+  "split by storm": {
+   "R2": 0.18585459385094122,
+   "MAE (log)": 0.8733694221062086
+  },
+  "random split": {
+   "R2": 0.2504735544396575,
+   "MAE (log)": 0.8235354858978869
+  }
+ },
+ "censored_test": {
+  "rows": 203,
+  "median_pred_hours": 50.333471643646064,
+  "median_pred_hours_known": 25.289962628823904,
+  "share_pred_above_1_week": 0.019704433497536946
+ },
+ "censored_filled": {
+  "train_rows_added": 935,
+  "fill_hours": 1009.5000000000001,
+  "test_r2_dropped": 0.20781258935917335,
+  "test_r2_filled": 0.12186500253609689,
+  "median_pred_censored_filled": 212.35917016789907
+ }
+}
