@@ -3,3 +3,4 @@
 *.out
 *.tex
 *.pdf
+!lights-out-ieee.pdf

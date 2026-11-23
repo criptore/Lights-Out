@@ -11,6 +11,8 @@
 | Erik Walter NIHLEN | Tekniska högskolan vid Linköpings universitet | Computer Science / Engineering | walni258@student.liu.se |
 | Thomas LHUILLIER BETTIN | Ecole central d'electronique | Computer Science / Engineering | thomaslhuillier78@gmail.com |
 
+**PDF version (IEEE two-column):** [`report/lights-out-ieee.pdf`](report/lights-out-ieee.pdf)
+
 ## Abstract
 
 When a storm hits the United States, some counties lose power for a few hours and others for weeks. Using a public
@@ -774,7 +776,8 @@ done
   (`GroupShuffleSplit`, 20% of the storms kept for the test), the folds and the models. With scikit-learn 1.9 we get
   the numbers above; other versions can move the third decimal.
 - **Two-column PDF.** The IEEE version of this report is built from this README with pandoc and LaTeX (IEEEtran):
-  `python3 report/build.py . report`, then `pdflatex lights-out-ieee.tex` twice in `report/`.
+  `python3 report/build.py . report`, then `pdflatex lights-out-ieee.tex` twice in `report/`. The final PDF is
+  committed as [`report/lights-out-ieee.pdf`](report/lights-out-ieee.pdf).
 
 ## References
 
